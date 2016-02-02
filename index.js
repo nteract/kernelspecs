@@ -1,86 +1,64 @@
-const jp = require('jupyter-paths')
-const path = require('path')
-const fs = require('fs')
+const jp = require('jupyter-paths');
+const path = require('path');
+const fs = require('fs');
 
-const Observable = require('rxjs/Rx').Observable
+/**
+ * Converts a callback style call to a Promise
+ * @param  {function} f
+ * @param  {object[]} args    arguments to pass to the function when invoking it
+ * @return {Promise<object>}  object returned by the function
+ */
+function callPromise(f, args) {
+  return new Promise((resolve, reject) => f.apply(this, args.concat((err, x) => err ? reject(err) : resolve(x))));
+}
 
-function getKernelResources(k, cb) {
-    fs.readdir(k.resourceDir, (err, files) => {
-        kernelJSONIndex = files.indexOf('kernel.json')
-        if(err || kernelJSONIndex === -1) {
-            cb({err: err})
-            return
-        }
-        const kernelSpec = {
-           name: k.name,
-           files: files.map(x => path.join(k.resourceDir, x)),
-           resources_dir: k.resourceDir
-        }
-
-        fs.readFile(path.join(k.resourceDir, files[kernelJSONIndex]), (err, data) => {
-            if (err) {
-                cb({err: err})
-                return
-            }
-            try {
-                kernelSpec['spec'] = JSON.parse(data)
-                cb(kernelSpec)
-            }
-            catch(e) {
-                cb({err: e})
-            }
-        })
+/**
+ * Get a kernel resources object 
+ * @param  {object}   kernelInfo              description of a kernel
+ * @param  {string}   kernelInfo.name         name of the kernel
+ * @param  {string}   kernelInfo.resourceDir  kernel's resources directory
+ * @return {Promise<object>}                  Promise for a kernelResources object
+ */
+function getKernelResources(kernelInfo) {
+  return Promise.resolve(kernelInfo).then(kernelInfo => 
+    callPromise(fs.readdir, [kernelInfo.resourceDir]).then(files => {
+      var kernelJSONIndex = files.indexOf('kernel.json');
+      if (kernelJSONIndex === -1) throw new Error('kernel.json not found');
+      
+      return callPromise(fs.readFile, [path.join(kernelInfo.resourceDir, 'kernel.json')]).then(data => ({
+        name: kernelInfo.name,
+        files: files.map(x => path.join(kernelInfo.resourceDir, x)),
+        resources_dir: kernelInfo.resourceDir,
+        spec: JSON.parse(data)
+      }));
     })
+  );
 }
 
-function kernels(d, cb) {
-    fs.readdir(d, (err, files) => {
-        if(err) {
-          cb([])
-        }
-        else {
-          cb(files.map(x => {
-              return {
-                  name: x,
-                  resourceDir: path.join(d, x)
-              }
-          }))
-        }
-    })
+/**
+ * Gets a list of kernelInfo objects for a given directory of kernels
+ * @param  {string}   directory path to a directory full of kernels
+return return     files.map(fileName => ({
+      name: fileName,
+      resourceDir: path.join(directory, fileName)
+    }))
+  );
 }
 
-const kernelsBound = Observable.bindCallback(kernels)
-const getKernelResourcesBound = Observable.bindCallback(getKernelResources)
-
-function asObservable() {
-  return Observable.fromPromise(jp.dataDirs({ withSysPrefix: true }))
-                    .flatMap(x => {
-                      return Observable.fromArray(x)
-                    })
-                    .map(d => path.join(d, 'kernels'))
-                    .flatMap(x => {return kernelsBound(x)})
-                    .filter(x => x !== {})
-                    .flatMap(x => {
-                      return Observable.fromArray(x)
-                    })
-                    .flatMap(x => {
-                      return getKernelResourcesBound(x)
-                    })
-                    .filter(x => !x.err)
-                    .publish()
-                    .refCount()
+/**
+ * Get an array of kernelResources objects for the host environment
+ * @return {Promise<object[]>} Promise for an array of kernelResources objects
+ */
+function kernelSpecs() {
+  return jp.dataDirs({ withSysPrefix: true }).then(dirs => {
+    return Promise.all(dirs
+      .map(dir => getKernelInfos(dir)) // get kernel infos for each directory
+      .reduce((a, b) => a.concat(b)) // flatten the results into one array
+      .map(a => a.catch())) // ignore kernelInfo related errors
+      .map(a => getKernelResources(a)) // convert kernelInfo -> kernelResources
+      .map(a => a.catch()) // ignore kernelResources related errors
+      .filter(a => a); // remove null/undefined kernelResources
+  });
 }
 
-function asPromise() {
-  return asObservable()
-           .reduce((kernels, kernel) => {
-             kernels[kernel.name] = kernel;
-              return kernels;
-            }, {})
-           .toPromise()
-}
-
-module.exports = {
-  asPromise,
-  asObservable,
-}
+module.exports = kernelSpecs;
