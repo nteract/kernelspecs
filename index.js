@@ -4,7 +4,7 @@ const fs = require('fs');
 
 /**
  * Converts a callback style call to a Promise
- * @param  {function} f
+ * @param  {function} f       a node style function that accepts a callback
  * @param  {object[]} args    arguments to pass to the function when invoking it
  * @return {Promise<object>}  object returned by the function
  */
@@ -13,23 +13,25 @@ function callPromise(f, args) {
 }
 
 /**
- * Get a kernel resources object 
+ * Get a kernel resources object
  * @param  {object}   kernelInfo              description of a kernel
  * @param  {string}   kernelInfo.name         name of the kernel
  * @param  {string}   kernelInfo.resourceDir  kernel's resources directory
  * @return {Promise<object>}                  Promise for a kernelResources object
  */
 function getKernelResources(kernelInfo) {
-  return Promise.resolve(kernelInfo).then(kernelInfo => 
+  return Promise.resolve().then(() =>
     callPromise(fs.readdir, [kernelInfo.resourceDir]).then(files => {
-      var kernelJSONIndex = files.indexOf('kernel.json');
-      if (kernelJSONIndex === -1) throw new Error('kernel.json not found');
-      
+      const kernelJSONIndex = files.indexOf('kernel.json');
+      if (kernelJSONIndex === -1) {
+        throw new Error('kernel.json not found');
+      }
+
       return callPromise(fs.readFile, [path.join(kernelInfo.resourceDir, 'kernel.json')]).then(data => ({
         name: kernelInfo.name,
         files: files.map(x => path.join(kernelInfo.resourceDir, x)),
-        resources_dir: kernelInfo.resourceDir,
-        spec: JSON.parse(data)
+        resources_dir: kernelInfo.resourceDir, // eslint-disable-line camelcase
+        spec: JSON.parse(data),
       }));
     })
   );
