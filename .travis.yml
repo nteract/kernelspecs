@@ -5,5 +5,6 @@ node_js:
 sudo: false
 
 before_install:
+  - pip install ipython==5 --user
   - pip install jupyter_console --user
   - jupyter kernelspec install-self --user
