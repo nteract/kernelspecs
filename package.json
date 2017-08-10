@@ -4,7 +4,7 @@
   "description": "Find Jupyter kernelspecs on a system",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive"
+    "test": "env JUPYTER_PATH=./test/myjupyter mocha --recursive"
   },
   "repository": {
     "type": "git",

@@ -17,6 +17,8 @@ describe('findAll', () => {
       expect(spec).to.have.property('display_name');
       expect(spec).to.have.property('argv');
 
+      expect(kernelspecs.python3.spec.display_name).to.equal('MyPython3');
+
     });
   });
 });
