@@ -10,7 +10,7 @@ describe('findAll', () => {
       const defaultKernel = kernelspecs.python2 || kernelspecs.python3;
 
       expect(defaultKernel).to.have.property('spec');
-      expect(defaultKernel).to.have.property('resources_dir');
+      expect(defaultKernel).to.have.property('resource_dir');
 
       const spec = defaultKernel.spec;
 
