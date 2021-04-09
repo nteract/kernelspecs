@@ -12,6 +12,8 @@ export interface KernelResources {
   spec: KernelspecMetadata
 }
 
+export type KernelResourcesRecord =  Record<KernelResources["name"], KernelResources>
+
 /** description of a kernel */
 export interface KernelInfo {
   /** name of the kernel */
@@ -45,12 +47,12 @@ export declare function getKernelInfos(directory: string): Promise<KernelInfo[]>
  */
 export declare function find(kernelName: string): Promise<KernelResources>
 
-declare function extractKernelResources(kernelInfos: Array<KernelInfo>): Promise<KernelResources[]>
+declare function extractKernelResources(kernelInfos: Array<KernelInfo>): Promise<KernelResourcesRecord>
 
 
 /**
- * Get an array of kernelResources objects for the host environment
+ * Get a record of kernelResources objects for the host environment
  * This matches the Jupyter notebook API for kernelspecs exactly
- * @return {Promise<KernelResources[]>} Promise for an array of {KernelResources} objects
+ * @return {Promise<KernelResourcesRecord>} Promise for a record of {KernelResources} objects that are indexable by their name
  */
-export declare function findAll(): Promise<KernelResources[]>
+export declare function findAll(): Promise<KernelResourcesRecord>
