@@ -1,9 +1,4 @@
-export interface KernelSpec {
-  env: Record<string, any>;
-  argv: Array<string>;
-  display_name: string;
-  language: string;
-}
+import { KernelspecMetadata } from "@nteract/types"
 
 export interface KernelResources {
   /** name of the kernel */
@@ -14,7 +9,7 @@ export interface KernelResources {
   /** kernel's resources directory */
   resourceDir: string
 
-  spec: KernelSpec
+  spec: KernelspecMetadata
 }
 
 /** description of a kernel */
