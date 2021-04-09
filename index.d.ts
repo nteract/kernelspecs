@@ -1,3 +1,10 @@
+export interface KernelSpec {
+  env: Record<string, any>;
+  argv: Array<string>;
+  display_name: string;
+  language: string;
+}
+
 export interface KernelResources {
   /** name of the kernel */
   name: string
@@ -7,7 +14,7 @@ export interface KernelResources {
   /** kernel's resources directory */
   resourceDir: string
 
-  spec: any
+  spec: KernelSpec
 }
 
 /** description of a kernel */
