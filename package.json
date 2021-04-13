@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "Find Jupyter kernelspecs on a system",
   "main": "index.js",
+  "types": "./index.d.ts",
   "scripts": {
     "test": "env JUPYTER_PATH=./test/myjupyter mocha --recursive"
   },
@@ -17,10 +18,13 @@
   },
   "homepage": "https://github.com/nteract/kernelspecs#readme",
   "dependencies": {
-    "jupyter-paths": "^2.0.0"
+    "jupyter-paths": "2.0.3"
   },
   "devDependencies": {
     "chai": "^4.1.1",
     "mocha": "^3.5.0"
+  },
+  "optionalDependencies": {
+    "@nteract/types": "^7.1.7"
   }
 }
