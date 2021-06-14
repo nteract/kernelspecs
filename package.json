@@ -6,7 +6,7 @@
   "types": "./index.d.ts",
   "scripts": {
     "test": "env JUPYTER_PATH=./test/myjupyter mocha --recursive",
-    "semantic-release": "semantic-release"
+    "release": "semantic-release"
   },
   "repository": {
     "type": "git",
